@@ -16,7 +16,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 	<title>Empleado</title>
 </head>
 <script>
-	function borrarAmortizacion(id, idEmpleado) {
+	function borrarAmortizacion(id) {
 		Swal.fire({
 			title: '¿Seguro de que quieres la amortizacion?',
 			showDenyButton: true,
@@ -25,9 +25,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 		}).then((result) => {
 			/* Read more about isConfirmed, isDenied below */
 			if (result.isDenied) {
-				document.getElementById("idOculto").value = id;
-				document.getElementById("idEmpleadoOculto").value = idEmpleado;
-				document.getElementById("formulario").submit();
+				location.href="<?=site_url().'empleado/borrarAmortizacion/'?>"+id;
 			}
 		})
 	}
@@ -53,8 +51,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 	<div class="w-25">
 
-		<?= form_open_multipart(site_url() . 'empleado/modificar'); ?>
-		<input type="hidden" name="id" value="<?= $empleado[0]->id ?>">
+		<?= form_open_multipart(site_url() . 'empleado/accionModificar/'.$empleado[0]->id); ?>
 		<div class="mb-3">
 			<label for="nombre" class="form-label">Nombre</label>
 			<input type="text" class="form-control" id="nombre" name="nombre" value="<?= $empleado[0]->nombre ?>">
@@ -78,8 +75,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 		<button type="submit" name="modificar" class="btn btn-success">Modificar</button>
 		<?php if ($empleado[0]->foto != null): ?>
-			<button type="submit" name="borrarFoto" class="btn btn-danger"
-					onclick=location.href='<?= base_url() . 'empleado/modificar' ?>'>Borrar foto
+			<button type="button" name="borrarFoto" class="btn btn-danger"
+					onclick=location.href='<?= base_url() . 'empleado/borrarImagen/'.$empleado[0]->id ?>'>Borrar foto
 			</button>
 		<?php endif; ?>
 		<button type="button" class="btn btn-primary" onclick=location.href='<?= base_url() ?>'>Volver</button>
@@ -93,7 +90,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 </div>
 <div class="container" style="margin-top: 20px">
 	<div class="w-25">
-		<form action="<?= site_url() . 'empleado/modificar' ?>" method="post" id="formularioAmortizacion">
+		<form action="<?= site_url() . 'empleado/agregarAmortizacion' ?>" method="post" id="formularioAmortizacion">
 			<input type="hidden" name="id" value="<?= $empleado[0]->id ?>">
 			<div class="mb-3">
 				<label for="numeroHoras" class="form-label">Número horas</label>
@@ -130,7 +127,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 						<td><?= $amortizacion->numeroHoras * $amortizacion->precioHora ?></td>
 						<td>
 							<button type="button" class="btn btn-danger" name="borrarAmortizacion"
-									onclick="borrarAmortizacion(<?= $amortizacion->id ?>,<?= $amortizacion->idEmpleado ?> )">
+									onclick="borrarAmortizacion(<?= $amortizacion->id ?>)">
 								Borrar
 							</button>
 						</td>
@@ -140,12 +137,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
 			</table>
 		<?php endif; ?>
 	</div>
-
-	<form action="<?= site_url() . 'empleado/borrarAmortizacion' ?>" id="formulario" method="post"
-		  style="display: none">
-		<input type="text" id="idOculto" name="idOculto">
-		<input type="text" id="idEmpleadoOculto" name="idEmpleadoOculto">
-	</form>
 </div>
 </div>
 </body>

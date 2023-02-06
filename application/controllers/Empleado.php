@@ -45,6 +45,52 @@ class Empleado extends CI_Controller
 		$this->load->view("altaEmpleado");
 	}
 
+	public function modificar($id = 0)
+	{
+		$this->load->model('EmpleadoModelo');
+		$data['empleado'] = $this->EmpleadoModelo->obtenerEmpleado($id);
+
+		if ($id == 0):
+			$this->session->set_flashdata('fallo', 'Error al obtener los datos');;
+			redirect(base_url());
+			return;
+		endif;
+
+		$data['empleado'] = $this->EmpleadoModelo->obtenerEmpleado($id);
+		$data['amortizaciones'] = $this->EmpleadoModelo->obtenerAmortizacionesEmpleado($id);
+
+		$this->load->view('empleado', $data);
+
+	}
+
+	function baja($id)
+	{
+
+		$this->load->model('EmpleadoModelo');
+		$this->load->helper('file');
+		$data = $this->EmpleadoModelo->obtenerEmpleado($id);
+
+		$exito = true;
+		if ($data[0]->foto != null):
+			$exito = unlink("./uploads/" . $data[0]->foto);
+		endif;
+
+		if (!$exito):
+			$this->session->set_flashdata('fallo', 'Error al borrar al empleado');
+			redirect(base_url());
+		endif;
+
+		$exito = $this->EmpleadoModelo->borrarEmpleado($id);
+		if ($exito):
+			$this->session->set_flashdata('exito', 'Empleado borrado con exito');
+		else:
+			$this->session->set_flashdata('fallo', 'Error al borrar al empleado');
+		endif;
+
+		redirect(base_url());
+
+	}
+
 	public function accionAlta()
 	{
 
@@ -92,33 +138,149 @@ class Empleado extends CI_Controller
 		redirect(base_url());
 	}
 
-
-	function baja($id)
+	public function accionModificar($id)
 	{
+		$config['upload_path'] = './uploads/';
+		$config['allowed_types'] = 'gif|jpg|png';
+		$config['max_size'] = 500;
+		$config['max_width'] = 1024;
+		$config['max_height'] = 768;
 
+		$this->load->library('upload', $config);
+		$this->load->library('session');
 		$this->load->model('EmpleadoModelo');
 		$this->load->helper('file');
-		$data = $this->EmpleadoModelo->obtenerEmpleado($id);
 
-		$exito = true;
-		if ($data[0]->foto != null):
-			$exito = unlink("./uploads/" . $data[0]->foto);
+		$nombre = $this->input->post('nombre');
+		$apellidos = $this->input->post('apellidos');
+		$fecha = $this->input->post('fecha');
+
+
+		if (!$this->validarFormulario()):
+			$this->modificar($id);
+			return;
 		endif;
+
+		$foto = null;
+		$tratoFichero = true;
+		$empleado = $this->EmpleadoModelo->obtenerEmpleado($id);
+
+		if ($_FILES['foto']['name'] != null):
+			$tratoFichero = $this->upload->do_upload('foto');
+			$foto = $this->upload->data('file_name');
+			if ($empleado[0]->foto != null && $tratoFichero):
+				unlink("./uploads/" . $empleado[0]->foto);
+			endif;
+		else:
+			$foto = $empleado[0]->foto;
+		endif;
+
+		$datos['nombre'] = $nombre;
+		$datos['apellidos'] = $apellidos;
+		$datos['fecha'] = $fecha;
+		$datos['foto'] = $foto;
+
+
+		$exito = false;
+		if ($tratoFichero):
+			$exito = $this->EmpleadoModelo->modificarEmpleado($id, $datos);
+		endif;
+		if ($exito):
+			$this->session->set_flashdata('exitos', 'Empleado modificado con exito');
+		else:
+			$this->session->set_flashdata('fallos', 'Error al modificar el empleado');
+		endif;
+		redirect(base_url() . 'empleado/modificar/' . $id);
+	}
+
+	public function validarFormulario()
+	{
+		$this->load->library('form_validation');
+		$this->form_validation->set_rules('nombre', 'Nombre', 'required');
+		$this->form_validation->set_rules('apellidos', 'Apellidos', 'required');
+		$this->form_validation->set_rules('fecha', 'Fecha', 'required');
+
+		return $this->form_validation->run();
+	}
+
+	public function borrarImagen($id)
+	{
+		$this->load->helper('file');
+		$this->load->model('EmpleadoModelo');
+		$empleado = $this->EmpleadoModelo->obtenerEmpleado($id);
+
+		$exito = unlink("./uploads/" . $empleado[0]->foto);
 
 		if (!$exito):
-			$this->session->set_flashdata('fallo', 'Error al borrar al empleado');
-			redirect(base_url());
+			$this->session->set_flashdata('fallos', 'Error al borrar la foto del empleado');
+			redirect(base_url() . 'empleado/modificar/' . $id);
 		endif;
 
-		$exito = $this->EmpleadoModelo->borrarEmpleado($id);
+		$datos['nombre'] = $empleado[0]->nombre;
+		$datos['apellidos'] = $empleado[0]->apellidos;
+		$datos['fecha'] = $empleado[0]->fecha;
+		$datos['foto'] = null;
+
+		$exito = $this->EmpleadoModelo->modificarEmpleado($empleado[0]->id, $datos);
+
 		if ($exito):
-			$this->session->set_flashdata('exito', 'Empleado borrado con exito');
+			$this->session->set_flashdata('exitos', 'Empleado modificado con exito');
 		else:
-			$this->session->set_flashdata('fallo', 'Error al borrar al empleado');
+			$this->session->set_flashdata('fallos', 'Error al modificar el empleado');
 		endif;
 
-		redirect(base_url());
+		redirect(base_url() . 'empleado/modificar/' . $id);
+	}
 
+	public function validarAmortizacion()
+	{
+		$this->load->library('form_validation');
+		$this->form_validation->set_rules('numeroHoras', 'Numero de horas', 'required');
+		$this->form_validation->set_rules('precioHora', 'Precio hora', 'required');
+
+		return $this->form_validation->run();
+	}
+
+	public function agregarAmortizacion()
+	{
+		$this->load->library('session');
+		$this->load->model('EmpleadoModelo');
+
+		$data['idEmpleado'] = $this->input->post('id');
+		$data['numeroHoras'] = $this->input->post('numeroHoras');
+		$data['precioHora'] = $this->input->post('precioHora');
+
+		if (!$this->validarAmortizacion()):
+			$this->modificar($data['idEmpleado']);
+			return;
+		endif;
+
+		$exito = $this->EmpleadoModelo->agregarAmortizacion($data);
+		if ($exito):
+			$this->session->set_flashdata('exitos', 'Amortización agregada con exito');
+		else:
+			$this->session->set_flashdata('fallos', 'Error al agregar la amortización');
+		endif;
+
+		redirect(base_url() . 'empleado/modificar/' . $data['idEmpleado']);
+
+	}
+
+	public function borrarAmortizacion($id)
+	{
+		$this->load->library('session');
+		$this->load->model('EmpleadoModelo');
+
+		$amortizacion = $this->EmpleadoModelo->obtenerAmortizacion($id);
+
+		$exito = $this->EmpleadoModelo->borrarAmortizacion($id);
+		if ($exito):
+			$this->session->set_flashdata('exitos', 'Amortización borrada con exito');
+		else:
+			$this->session->set_flashdata('fallos', 'Error al borrar la amortización');
+		endif;
+
+		redirect(base_url() . 'empleado/modificar/' . $amortizacion[0]->idEmpleado);
 	}
 
 	public function configurarPaginador($total_rows)
@@ -155,181 +317,6 @@ class Empleado extends CI_Controller
 		$config['num_tag_close'] = '</span></li>';
 
 		$this->pagination->initialize($config);
-	}
-
-
-	public function validarFormulario()
-	{
-		$this->load->library('form_validation');
-		$this->form_validation->set_rules('nombre', 'Nombre', 'required');
-		$this->form_validation->set_rules('apellidos', 'Apellidos', 'required');
-		$this->form_validation->set_rules('fecha', 'Fecha', 'required');
-
-		return $this->form_validation->run();
-	}
-
-
-	public function modificar()
-	{
-		$this->load->model('EmpleadoModelo');
-		$data['id'] = $this->input->post('id');
-		$data['empleado'] = $this->EmpleadoModelo->obtenerEmpleado($data['id']);
-
-		if (isset($_POST['modificar'])):
-			$this->accionModificar();
-		elseif (isset($_POST['borrarFoto'])):
-			$this->borrarImagen($data['empleado']);
-		elseif (isset($_POST['agregarAmortizacion'])):
-			$this->agregarAmortizacion();
-		else:
-			if ($data['id'] == null):
-				$this->session->set_flashdata('fallo', 'Error al obtener los datos');;
-				redirect(base_url());
-				return;
-			endif;
-		endif;
-
-		$data['empleado'] = $this->EmpleadoModelo->obtenerEmpleado($data['id']);
-		$data['amortizaciones'] = $this->EmpleadoModelo->obtenerAmortizacionesEmpleado($data['id']);
-
-
-		$this->load->view('empleado', $data);
-	}
-
-	private function borrarImagen($empleado)
-	{
-		$this->load->helper('file');
-		$exito = unlink("./uploads/" . $empleado[0]->foto);
-
-		if (!$exito):
-			return false;
-		endif;
-		$datos['nombre'] = $empleado[0]->nombre;
-		$datos['apellidos'] = $empleado[0]->apellidos;
-		$datos['fecha'] = $empleado[0]->fecha;
-		$datos['foto'] = null;
-
-		$exito = $this->EmpleadoModelo->modificarEmpleado($empleado[0]->id, $datos);
-
-		if ($exito):
-			$this->session->set_flashdata('exitos', 'Empleado modificado con exito');
-		else:
-			$this->session->set_flashdata('fallos', 'Error al modificar el empleado');
-		endif;
-		return $exito;
-	}
-
-	public function accionModificar()
-	{
-
-		$config['upload_path'] = './uploads/';
-		$config['allowed_types'] = 'gif|jpg|png';
-		$config['max_size'] = 500;
-		$config['max_width'] = 1024;
-		$config['max_height'] = 768;
-
-		$this->load->library('upload', $config);
-		$this->load->library('session');
-		$this->load->model('EmpleadoModelo');
-		$this->load->helper('file');
-
-		$id = $this->input->post('id');
-		$nombre = $this->input->post('nombre');
-		$apellidos = $this->input->post('apellidos');
-		$fecha = $this->input->post('fecha');
-
-		if (!$this->validarFormulario()):
-			return false;
-		endif;
-
-		$foto = null;
-		$tratoFichero = true;
-		$empleado = $this->EmpleadoModelo->obtenerEmpleado($id);
-
-		if ($_FILES['foto']['name'] != null):
-			$tratoFichero = $this->upload->do_upload('foto');
-			$foto = $this->upload->data('file_name');
-			if ($empleado[0]->foto != null && $tratoFichero):
-				unlink("./uploads/" . $empleado[0]->foto);
-			endif;
-		else:
-			$foto = $empleado[0]->foto;
-		endif;
-
-		$datos['nombre'] = $nombre;
-		$datos['apellidos'] = $apellidos;
-		$datos['fecha'] = $fecha;
-		$datos['foto'] = $foto;
-
-
-		$exito = false;
-		if ($tratoFichero):
-			$exito = $this->EmpleadoModelo->modificarEmpleado($id, $datos);
-		endif;
-		if ($exito):
-			$this->session->set_flashdata('exitos', 'Empleado modificado con exito');
-		else:
-			$this->session->set_flashdata('fallos', 'Error al modificar el empleado');
-		endif;
-	}
-
-	public function validarAmortizacion()
-	{
-		$this->load->library('form_validation');
-		$this->form_validation->set_rules('numeroHoras', 'Numero de horas', 'required');
-		$this->form_validation->set_rules('precioHora', 'Precio hora', 'required');
-
-		return $this->form_validation->run();
-	}
-
-	public function agregarAmortizacion()
-	{
-		$this->load->library('session');
-		$this->load->model('EmpleadoModelo');
-
-		$amortizacionCorrecta = $this->validarAmortizacion();
-
-		if (!$amortizacionCorrecta):
-			return false;
-		endif;
-
-		$data['idEmpleado'] = $this->input->post('id');
-		$data['numeroHoras'] = $this->input->post('numeroHoras');
-		$data['precioHora'] = $this->input->post('precioHora');
-
-		$exito = $this->EmpleadoModelo->agregarAmortizacion($data);
-		if ($exito):
-			$this->session->set_flashdata('exitos', 'Amortización agregada con exito');
-		else:
-			$this->session->set_flashdata('fallos', 'Error al agregar la amortización');
-		endif;
-
-		return $exito;
-
-
-	}
-
-	public function borrarAmortizacion()
-	{
-		$this->load->library('session');
-		$this->load->model('EmpleadoModelo');
-
-		$id = $this->input->post('idOculto');
-		$idEmpleado = $this->input->post('idEmpleadoOculto');
-
-		$exito = $this->EmpleadoModelo->borrarAmortizacion($id);
-		if ($exito):
-			$this->session->set_flashdata('exitos', 'Amortización borrada con exito');
-		else:
-			$this->session->set_flashdata('fallos', 'Error al borrar la amortización');
-		endif;
-		$this->session->set_userdata("empleado", $this->EmpleadoModelo->obtenerEmpleado($idEmpleado));
-
-		$data['empleado'] = $this->EmpleadoModelo->obtenerEmpleado($idEmpleado);
-		$data['amortizaciones'] = $this->EmpleadoModelo->obtenerAmortizacionesEmpleado($idEmpleado);
-
-
-		$this->load->view('empleado', $data);
 	}
 
 }

@@ -22,6 +22,10 @@ class EmpleadoModelo extends CI_Model
 	public function borrarAmortizacion($id){
 		return $this->db->delete('amortizacion', array('id' => $id));
 	}
+
+	public function obtenerAmortizacion($id){
+		return $this->db->get_where('amortizacion',array('id'=>$id))->result();
+	}
 	function getSearchUsers($perPage, $start_index, $search_text = null, $is_count = 0)
 	{
 		if ($search_text != NULL) {

@@ -17,13 +17,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
 </head>
 <script>
 
-	function informacionEmpleado(id) {
-
-		document.getElementById("id").value = id;
-		document.getElementById("formulario").submit();
-
-	}
-
 	function borrarEmpleado(id) {
 		Swal.fire({
 			title: '¿Seguro de que quieres borrar el empleado?',
@@ -39,9 +32,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
 	}
 </script>
 <body>
-<form id="formulario" style="display: none" method="post" action="<?= site_url() . "empleado/modificar" ?>">
-	<input type="text" name="id" id="id">
-</form>
 <div class="container" style="margin-top: 20px">
 	<?php if ($this->session->flashdata('exito')): ?>
 		<div class="alert alert-success">
@@ -87,7 +77,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
 								<td><?= $empleado->apellidos ?></td>
 								<td>
 									<button type="button" class="btn btn-primary"
-											onclick="informacionEmpleado(<?= $empleado->id ?>)">Información
+											onclick=location.href="<?= site_url() . 'empleado/modificar/' . $empleado->id ?>">
+										Información
 									</button>
 									<button type="button" class="btn btn-danger"
 											onclick="borrarEmpleado(<?= $empleado->id ?>)">Borrar
