@@ -6,26 +6,32 @@ class EmpleadoModelo extends CI_Model
 	{
 		return $this->db->get('empleado')->result();
 	}
+
 	public function obtenerEmpleado($id)
 	{
-		return $this->db->get_where('empleado',array('id'=>$id))->result();
+		return $this->db->get_where('empleado', array('id' => $id))->result();
 	}
 
-	public function obtenerAmortizacionesEmpleado($id){
-		return $this->db->get_where('amortizacion',array('idEmpleado'=>$id))->result();
+	public function obtenerAmortizacionesEmpleado($id)
+	{
+		return $this->db->get_where('amortizacion', array('idEmpleado' => $id))->result();
 	}
 
-	public function agregarAmortizacion($data){
+	public function agregarAmortizacion($data)
+	{
 		return $this->db->insert('amortizacion', $data);
 	}
 
-	public function borrarAmortizacion($id){
+	public function borrarAmortizacion($id)
+	{
 		return $this->db->delete('amortizacion', array('id' => $id));
 	}
 
-	public function obtenerAmortizacion($id){
-		return $this->db->get_where('amortizacion',array('id'=>$id))->result();
+	public function obtenerAmortizacion($id)
+	{
+		return $this->db->get_where('amortizacion', array('id' => $id))->result();
 	}
+
 	function getSearchUsers($perPage, $start_index, $search_text = null, $is_count = 0)
 	{
 		if ($search_text != NULL) {
@@ -37,7 +43,7 @@ class EmpleadoModelo extends CI_Model
 			$query = $this->db->get('empleado');
 			return $query->num_rows();
 		} else {
-			return $this->db->get('empleado',$perPage, $start_index);
+			return $this->db->get('empleado', $perPage, $start_index);
 
 		}
 	}
@@ -52,7 +58,8 @@ class EmpleadoModelo extends CI_Model
 		return $this->db->delete('empleado', array('id' => $id));
 	}
 
-	public function modificarEmpleado($id,$data){
+	public function modificarEmpleado($id, $data)
+	{
 		$this->db->where('id', $id);
 		return $this->db->update('empleado', $data);
 	}

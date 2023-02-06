@@ -15,8 +15,12 @@ defined('BASEPATH') or exit('No direct script access allowed');
 	<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<title>Empleados</title>
 </head>
+<style>
+	body {
+		font-family: "Segoe UI";
+	}
+</style>
 <script>
-
 	function borrarEmpleado(id) {
 		Swal.fire({
 			title: '¿Seguro de que quieres borrar el empleado?',
@@ -63,6 +67,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
 							</div>
 						</div>
 					</form>
+					<?php if (count($empleados) == 0): ?>
+						<p>No se encuentran empleados.</p>
+					<?php else:?>
 					<table class="table table-striped table-bordered" style="margin-top: 20px">
 						<thead>
 						<tr>
@@ -72,26 +79,27 @@ defined('BASEPATH') or exit('No direct script access allowed');
 						</thead>
 						<tbody>
 						<?php foreach ($empleados as $empleado): ?>
-							<tr>
-								<td><?= $empleado->nombre ?></td>
-								<td><?= $empleado->apellidos ?></td>
-								<td>
-									<button type="button" class="btn btn-primary"
-											onclick=location.href="<?= site_url() . 'empleado/modificar/' . $empleado->id ?>">
-										Información
-									</button>
-									<button type="button" class="btn btn-danger"
-											onclick="borrarEmpleado(<?= $empleado->id ?>)">Borrar
-									</button>
-								</td>
-							</tr>
+						<tr>
+							<td><?= $empleado->nombre ?></td>
+							<td><?= $empleado->apellidos ?></td>
+							<td>
+								<button type="button" class="btn btn-primary"
+										onclick=location.href="<?= site_url() . 'empleado/modificar/' . $empleado->id ?>">
+									Información
+								</button>
+								<button type="button" class="btn btn-danger"
+										onclick="borrarEmpleado(<?= $empleado->id ?>)">Borrar
+								</button>
+							</td>
+						</tr>
 						<?php endforeach; ?>
 						</tbody>
 					</table>
+					<?php endif ?>
 				</div>
 				<?= $links ?>
 			</div>
-			<button type="button" class="btn btn-success"
+			<button type="button" class="btn btn-success" style="margin-top: 25px"
 					onclick="window.location.href = '<?= site_url() ?>empleado/alta';">Añadir empleados
 			</button>
 		</div>

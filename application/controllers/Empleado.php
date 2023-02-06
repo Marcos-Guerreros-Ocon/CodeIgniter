@@ -165,10 +165,10 @@ class Empleado extends CI_Controller
 		$tratoFichero = true;
 		$empleado = $this->EmpleadoModelo->obtenerEmpleado($id);
 
-		if ($_FILES['foto']['name'] != null):
-			$tratoFichero = $this->upload->do_upload('foto');
+		if ($_FILES['foto']['name'] != null): // SI NOS PASAN FOTO
+			$tratoFichero = $this->upload->do_upload('foto'); // SUBIMOS LA FOTO
 			$foto = $this->upload->data('file_name');
-			if ($empleado[0]->foto != null && $tratoFichero):
+			if ($empleado[0]->foto != null && $tratoFichero): // SI
 				unlink("./uploads/" . $empleado[0]->foto);
 			endif;
 		else:
@@ -296,7 +296,7 @@ class Empleado extends CI_Controller
 		$config['page_query_string'] = true;
 		$config['query_string_segment'] = 'page';
 		$config['reuse_query_string'] = true;
-		$config['full_tag_open'] = '<ul  class="pagination">';
+		$config['full_tag_open'] = '<ul  class="pagination" style="margin-left: 20px;">';
 		$config['full_tag_close'] = '</ul>';
 		$config['first_link'] = 'First';
 		$config['last_link'] = 'Last';
@@ -318,5 +318,4 @@ class Empleado extends CI_Controller
 
 		$this->pagination->initialize($config);
 	}
-
 }
