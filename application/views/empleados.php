@@ -59,10 +59,10 @@ defined('BASEPATH') or exit('No direct script access allowed');
 					<form action="<?= base_url() ?>" method="get">
 						<div class="row g-3 align-items-center">
 							<div class="col-auto">
-								<label for="search_text" class="col-form-label">Search</label>
+								<label for="search_text" class="col-form-label">Buscar</label>
 							</div>
 							<div class="col-auto">
-								<input type="text" placeholder="Search here"
+								<input type="text" placeholder="Introduce tu búsqueda"
 									   value="<?php if ($this->input->get('search_text')) {
 										   echo $this->input->get('search_text');
 									   } ?>" id="search_text" name="search_text" class="form-control"

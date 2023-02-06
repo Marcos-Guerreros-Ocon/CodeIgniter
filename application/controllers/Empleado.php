@@ -50,7 +50,7 @@ class Empleado extends CI_Controller
 
 		$config['upload_path'] = './uploads/';
 		$config['allowed_types'] = 'gif|jpg|png';
-		$config['max_size'] = 300;
+		$config['max_size'] = 500;
 		$config['max_width'] = 1024;
 		$config['max_height'] = 768;
 
@@ -192,7 +192,7 @@ class Empleado extends CI_Controller
 
 		$config['upload_path'] = './uploads/';
 		$config['allowed_types'] = 'gif|jpg|png';
-		$config['max_size'] = 300;
+		$config['max_size'] = 500;
 		$config['max_width'] = 1024;
 		$config['max_height'] = 768;
 
@@ -208,31 +208,33 @@ class Empleado extends CI_Controller
 		$foto = null;
 
 		$empleado = $this->EmpleadoModelo->obtenerEmpleado($id);
-		if (isset($_POST['modificar'])):
-
-			if ($empleado[0]->foto != null):
-				unlink("./uploads/" . $empleado[0]->foto);
-			endif;
-
+		if (isset($_POST['modificar'])): // BOTON MODIFICAR
 			if ($_FILES['foto']['name'] != null):
-				$this->upload->do_upload('foto');
+				$tratoFichero = $this->upload->do_upload('foto');
 				$foto = $this->upload->data('file_name');
+				if ($empleado[0]->foto != null && $tratoFichero):
+					unlink("./uploads/" . $empleado[0]->foto);
+				endif;
+			else:
+				$foto = $empleado[0]->foto;
 			endif;
 
 			$datos['nombre'] = $nombre;
 			$datos['apellidos'] = $apellidos;
 			$datos['fecha'] = $fecha;
 			$datos['foto'] = $foto;
-		else:
-			unlink("./uploads/" . $empleado[0]->foto);
+		else: // BOTON BORRAR IMAGEN
+			$tratoFichero = unlink("./uploads/" . $empleado[0]->foto);
 			$datos['nombre'] = $empleado[0]->nombre;
 			$datos['apellidos'] = $empleado[0]->apellidos;
 			$datos['fecha'] = $empleado[0]->fecha;
 			$datos['foto'] = null;
 		endif;
 
-		$exito = $this->EmpleadoModelo->modificarEmpleado($id, $datos);
-
+		$exito = false;
+		if ($tratoFichero):
+			$exito = $this->EmpleadoModelo->modificarEmpleado($id, $datos);
+		endif;
 		if ($exito):
 			$this->session->set_flashdata('exitos', 'Empleado modificado con exito');
 		else:
@@ -254,9 +256,6 @@ class Empleado extends CI_Controller
 
 	public function agregarAmortizacion()
 	{
-		var_dump(isset($_POST['btnAgregarAmortizacion']));
-
-
 		$this->load->library('session');
 		$this->load->model('EmpleadoModelo');
 

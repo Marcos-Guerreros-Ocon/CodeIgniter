@@ -24,10 +24,6 @@ class EmpleadoModelo extends CI_Model
 	}
 	function getSearchUsers($perPage, $start_index, $search_text = null, $is_count = 0)
 	{
-		if ($perPage != '' && $start_index != '') {
-			$this->db->limit($perPage, $start_index);
-		}
-
 		if ($search_text != NULL) {
 			$this->db->like('nombre', $search_text, 'both');
 			$this->db->or_like('apellidos', $search_text, 'both');
@@ -37,7 +33,7 @@ class EmpleadoModelo extends CI_Model
 			$query = $this->db->get('empleado');
 			return $query->num_rows();
 		} else {
-			return $this->db->get('empleado');
+			return $this->db->get('empleado',$perPage, $start_index);
 
 		}
 	}
