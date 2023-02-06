@@ -254,7 +254,10 @@ class Empleado extends CI_Controller
 
 	public function agregarAmortizacion()
 	{
+		var_dump(isset($_POST['btnAgregarAmortizacion']));
 
+
+		$this->load->library('session');
 		$this->load->model('EmpleadoModelo');
 
 		$data['idEmpleado'] = $this->input->post('id');
@@ -272,20 +275,27 @@ class Empleado extends CI_Controller
 
 		$this->load->view('empleado', $data);
 
+
 	}
 
-	public function borrarAmortizacion($id,$idEmpleado){
+	public function borrarAmortizacion()
+	{
+		$this->load->library('session');
 		$this->load->model('EmpleadoModelo');
+
+		$id = $this->input->post('idOculto');
+		$idEmpleado = $this->input->post('idEmpleadoOculto');
+
 		$exito = $this->EmpleadoModelo->borrarAmortizacion($id);
-
-
 		if ($exito):
 			$this->session->set_flashdata('exitos', 'Amortización borrada con exito');
 		else:
 			$this->session->set_flashdata('fallos', 'Error al borrar la amortización');
 		endif;
-		$data['amortizaciones'] = $this->EmpleadoModelo->obtenerAmortizacionesEmpleado($idEmpleado);
+		$this->session->set_userdata("empleado", $this->EmpleadoModelo->obtenerEmpleado($idEmpleado));
+
 		$data['empleado'] = $this->EmpleadoModelo->obtenerEmpleado($idEmpleado);
+		$data['amortizaciones'] = $this->EmpleadoModelo->obtenerAmortizacionesEmpleado($idEmpleado);
 
 
 		$this->load->view('empleado', $data);
