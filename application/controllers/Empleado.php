@@ -172,19 +172,51 @@ class Empleado extends CI_Controller
 	public function modificar()
 	{
 		$this->load->model('EmpleadoModelo');
-
 		$data['id'] = $this->input->post('id');
-
-
-		if ($data['id'] == null):
-			$this->session->set_flashdata('fallo', 'Error al obtener los datos');;
-			redirect(base_url());
-			return;
-		endif;
-		$data['amortizaciones'] = $this->EmpleadoModelo->obtenerAmortizacionesEmpleado($data['id']);
 		$data['empleado'] = $this->EmpleadoModelo->obtenerEmpleado($data['id']);
 
+		if (isset($_POST['modificar'])):
+			$this->accionModificar();
+		elseif (isset($_POST['borrarFoto'])):
+			$this->borrarImagen($data['empleado']);
+		elseif (isset($_POST['agregarAmortizacion'])):
+			$this->agregarAmortizacion();
+		else:
+			if ($data['id'] == null):
+				$this->session->set_flashdata('fallo', 'Error al obtener los datos');;
+				redirect(base_url());
+				return;
+			endif;
+		endif;
+
+		$data['empleado'] = $this->EmpleadoModelo->obtenerEmpleado($data['id']);
+		$data['amortizaciones'] = $this->EmpleadoModelo->obtenerAmortizacionesEmpleado($data['id']);
+
+
 		$this->load->view('empleado', $data);
+	}
+
+	private function borrarImagen($empleado)
+	{
+		$this->load->helper('file');
+		$exito = unlink("./uploads/" . $empleado[0]->foto);
+
+		if (!$exito):
+			return false;
+		endif;
+		$datos['nombre'] = $empleado[0]->nombre;
+		$datos['apellidos'] = $empleado[0]->apellidos;
+		$datos['fecha'] = $empleado[0]->fecha;
+		$datos['foto'] = null;
+
+		$exito = $this->EmpleadoModelo->modificarEmpleado($empleado[0]->id, $datos);
+
+		if ($exito):
+			$this->session->set_flashdata('exitos', 'Empleado modificado con exito');
+		else:
+			$this->session->set_flashdata('fallos', 'Error al modificar el empleado');
+		endif;
+		return $exito;
 	}
 
 	public function accionModificar()
@@ -205,31 +237,30 @@ class Empleado extends CI_Controller
 		$nombre = $this->input->post('nombre');
 		$apellidos = $this->input->post('apellidos');
 		$fecha = $this->input->post('fecha');
-		$foto = null;
 
-		$empleado = $this->EmpleadoModelo->obtenerEmpleado($id);
-		if (isset($_POST['modificar'])): // BOTON MODIFICAR
-			if ($_FILES['foto']['name'] != null):
-				$tratoFichero = $this->upload->do_upload('foto');
-				$foto = $this->upload->data('file_name');
-				if ($empleado[0]->foto != null && $tratoFichero):
-					unlink("./uploads/" . $empleado[0]->foto);
-				endif;
-			else:
-				$foto = $empleado[0]->foto;
-			endif;
-
-			$datos['nombre'] = $nombre;
-			$datos['apellidos'] = $apellidos;
-			$datos['fecha'] = $fecha;
-			$datos['foto'] = $foto;
-		else: // BOTON BORRAR IMAGEN
-			$tratoFichero = unlink("./uploads/" . $empleado[0]->foto);
-			$datos['nombre'] = $empleado[0]->nombre;
-			$datos['apellidos'] = $empleado[0]->apellidos;
-			$datos['fecha'] = $empleado[0]->fecha;
-			$datos['foto'] = null;
+		if (!$this->validarFormulario()):
+			return false;
 		endif;
+
+		$foto = null;
+		$tratoFichero = true;
+		$empleado = $this->EmpleadoModelo->obtenerEmpleado($id);
+
+		if ($_FILES['foto']['name'] != null):
+			$tratoFichero = $this->upload->do_upload('foto');
+			$foto = $this->upload->data('file_name');
+			if ($empleado[0]->foto != null && $tratoFichero):
+				unlink("./uploads/" . $empleado[0]->foto);
+			endif;
+		else:
+			$foto = $empleado[0]->foto;
+		endif;
+
+		$datos['nombre'] = $nombre;
+		$datos['apellidos'] = $apellidos;
+		$datos['fecha'] = $fecha;
+		$datos['foto'] = $foto;
+
 
 		$exito = false;
 		if ($tratoFichero):
@@ -240,16 +271,13 @@ class Empleado extends CI_Controller
 		else:
 			$this->session->set_flashdata('fallos', 'Error al modificar el empleado');
 		endif;
-		$data['empleado'] = $this->EmpleadoModelo->obtenerEmpleado($id);
-		$data['amortizaciones'] = $this->EmpleadoModelo->obtenerAmortizacionesEmpleado($id);
-		$this->load->view('empleado', $data);
 	}
 
 	public function validarAmortizacion()
 	{
 		$this->load->library('form_validation');
-		$this->form_validation->set_rules('numeroHoras', 'Numero de horas', 'greater_than[0]');
-		$this->form_validation->set_rules('precioHora', 'Precio hora', 'greater_than[0]');
+		$this->form_validation->set_rules('numeroHoras', 'Numero de horas', 'required');
+		$this->form_validation->set_rules('precioHora', 'Precio hora', 'required');
 
 		return $this->form_validation->run();
 	}
@@ -258,6 +286,12 @@ class Empleado extends CI_Controller
 	{
 		$this->load->library('session');
 		$this->load->model('EmpleadoModelo');
+
+		$amortizacionCorrecta = $this->validarAmortizacion();
+
+		if (!$amortizacionCorrecta):
+			return false;
+		endif;
 
 		$data['idEmpleado'] = $this->input->post('id');
 		$data['numeroHoras'] = $this->input->post('numeroHoras');
@@ -269,10 +303,8 @@ class Empleado extends CI_Controller
 		else:
 			$this->session->set_flashdata('fallos', 'Error al agregar la amortización');
 		endif;
-		$data['amortizaciones'] = $this->EmpleadoModelo->obtenerAmortizacionesEmpleado($data['idEmpleado']);
-		$data['empleado'] = $this->EmpleadoModelo->obtenerEmpleado($data['idEmpleado']);
 
-		$this->load->view('empleado', $data);
+		return $exito;
 
 
 	}

@@ -4,7 +4,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
 ?>
 <!doctype html>
 <html lang="en">
-
 <head>
 	<!-- Required meta tags -->
 	<meta charset="utf-8">
@@ -33,7 +32,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
 		})
 	}
 </script>
-
 <style>
 	.container {
 		display: flex;
@@ -55,7 +53,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 	<div class="w-25">
 
-		<?= form_open_multipart(site_url() . 'empleado/accionModificar'); ?>
+		<?= form_open_multipart(site_url() . 'empleado/modificar'); ?>
 		<input type="hidden" name="id" value="<?= $empleado[0]->id ?>">
 		<div class="mb-3">
 			<label for="nombre" class="form-label">Nombre</label>
@@ -81,7 +79,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 		<button type="submit" name="modificar" class="btn btn-success">Modificar</button>
 		<?php if ($empleado[0]->foto != null): ?>
 			<button type="submit" name="borrarFoto" class="btn btn-danger"
-					onclick=location.href='<?= base_url() . 'empleado/borrarImagen' ?>'>Borrar foto
+					onclick=location.href='<?= base_url() . 'empleado/modificar' ?>'>Borrar foto
 			</button>
 		<?php endif; ?>
 		<button type="button" class="btn btn-primary" onclick=location.href='<?= base_url() ?>'>Volver</button>
@@ -95,7 +93,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 </div>
 <div class="container" style="margin-top: 20px">
 	<div class="w-25">
-		<form action="<?= site_url() . 'empleado/agregarAmortizacion' ?>" method="post" id="formularioAmortizacion">
+		<form action="<?= site_url() . 'empleado/modificar' ?>" method="post" id="formularioAmortizacion">
 			<input type="hidden" name="id" value="<?= $empleado[0]->id ?>">
 			<div class="mb-3">
 				<label for="numeroHoras" class="form-label">Número horas</label>
@@ -108,39 +106,47 @@ defined('BASEPATH') or exit('No direct script access allowed');
 					   value="1">
 				<?php echo form_error('precioHora'); ?>
 			</div>
-			<button type="submit" name="btnAgregarAmortizacion" class="btn btn-success">Añadir amortización</button>
+			<button type="submit" name="agregarAmortizacion" class="btn btn-success">Añadir amortización</button>
 		</form>
 	</div>
 	<div class="w-25">
 		<?php if (count($amortizaciones) == 0): ?>
 			<p>Sin amortizaciones</p>
 		<?php else: ?>
-			<table>
+			<table class="table table-striped table-bordered" style="margin-top: 20px">
+				<thead>
 				<tr>
-					<th>Número de horas</th>
+					<th>Horas</th>
 					<th>Precio hora</th>
+					<th>Total</th>
 					<th>Acción</th>
 				</tr>
+				</thead>
+				<tbody>
 				<?php foreach ($amortizaciones as $amortizacion): ?>
 					<tr>
 						<td><?= $amortizacion->numeroHoras ?></td>
 						<td><?= $amortizacion->precioHora ?></td>
+						<td><?= $amortizacion->numeroHoras * $amortizacion->precioHora ?></td>
 						<td>
-							<button type="button" class="btn btn-danger"
+							<button type="button" class="btn btn-danger" name="borrarAmortizacion"
 									onclick="borrarAmortizacion(<?= $amortizacion->id ?>,<?= $amortizacion->idEmpleado ?> )">
 								Borrar
 							</button>
 						</td>
 					</tr>
 				<?php endforeach; ?>
+				</tbody>
 			</table>
 		<?php endif; ?>
-
-		<form action="<?= site_url() . 'empleado/borrarAmortizacion' ?>" id="formulario" method="post" style="display: none">
-			<input type="text" id="idOculto" name="idOculto">
-			<input type="text" id="idEmpleadoOculto" name="idEmpleadoOculto">
-		</form>
 	</div>
+
+	<form action="<?= site_url() . 'empleado/borrarAmortizacion' ?>" id="formulario" method="post"
+		  style="display: none">
+		<input type="text" id="idOculto" name="idOculto">
+		<input type="text" id="idEmpleadoOculto" name="idEmpleadoOculto">
+	</form>
+</div>
 </div>
 </body>
 </html>
